@@ -28,6 +28,23 @@ After installation, look for the **PCF Export** tab in the Revit ribbon. The sin
 
 ---
 
+# One-time project setup — required parameters
+
+Before the exporter can do its job, two instance parameters must exist on the **MEP Fabrication Pipework** category and be reachable via `Element.LookupParameter(...)`:
+
+| Parameter | Category | Purpose |
+|---|---|---|
+| **Line Number** | MEP Fabrication Pipework (instance) | The pipeline / line identifier that becomes the PCF's `PIPELINE-REFERENCE`. Also drives the initial value shown in the Export dialog's **Pipeline Reference** field. |
+| **Tag** | MEP Fabrication Pipework (instance) | The unique valve / component tag written to each PCF component's `TAG` attribute. |
+
+**Add them once per project (or in your template)** via **Manage → Project Parameters → Add**. Any storage type works as long as the parameter reads as text; a shared parameter is preferable if you want the values to travel between models or into schedules.
+
+If either parameter is missing on the category, the exporter still runs but the values it depends on come back empty — `PIPELINE-REFERENCE` defaults to `<BLANK>` and `TAG` fields on valves come out empty, which the tag validator immediately catches.
+
+Skipping this setup step is the single most common reason a fresh install "doesn't work right" — do it first.
+
+---
+
 # ITMs to PCF
 
 The exporter. Walks selected fabrication parts, derives ISOGEN SKEYs, and writes a PCF file.
@@ -53,7 +70,20 @@ The dialog is grouped into collapsible sections. Most defaults are safe.
 ### Header
 
 - **PROJECT-IDENTIFIER** — free-text project name written into the PCF header. Defaults to the Revit model name.
-- **PIPELINE-REFERENCE** — the pipeline / line-number string written into the PIPELINE-COMPONENT block. Defaults derive from the model's naming convention; override per export.
+- **PIPELINE-REFERENCE** — the pipeline / line-number string written into the PIPELINE-COMPONENT block. **Auto-populated from the Line Number parameter on the selected MEP Fabrication Pipework** — see the section immediately below.
+
+#### How Pipeline Reference gets its value
+
+When you open the Export dialog, the tool reads the **Line Number** parameter on every selected MEP Fabrication Pipework element and populates the **Pipeline Reference** field for you:
+
+- **One selected pipe run with a Line Number populated** — the field shows that value directly. Example: selecting a run tagged `1001` → the field shows `1001`.
+- **One or more selected pipes with no Line Number set** — the field shows `<BLANK>`. That's the exporter's explicit sentinel for "no line number here"; it goes into the PCF as-is if you don't override.
+- **Multiple pipe runs with different Line Numbers selected** — the field shows every distinct value, comma-separated. Example: selecting parts from lines `1001` and `1002` in one selection → the field shows `1001, 1002`.
+- **Mixed — some pipes have a Line Number, some don't** — the missing ones contribute `<BLANK>` to the list. Example: three runs where two are tagged `1001` and one is unset → the field shows `1001, <BLANK>`.
+
+You can edit the field freely before clicking Export. Overriding it here doesn't write back to the Revit parameter — the change is scoped to this export.
+
+This behaviour is why the [one-time project setup](#one-time-project-setup--required-parameters) step matters: with **Line Number** provisioned on your Fabrication Pipework and populated on real pipes, the Pipeline Reference lands correctly with zero manual entry. Without it, every export starts with `<BLANK>` and you retype the value each time.
 
 ### Materials
 
