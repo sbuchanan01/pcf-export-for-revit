@@ -49,6 +49,8 @@ Skipping this setup step is the single most common reason a fresh install "doesn
 
 The exporter. Walks selected fabrication parts, derives ISOGEN SKEYs, and writes a PCF file.
 
+![Export dialog](screenshots/export-dialog.png)
+
 ## Workflow
 
 1. Select one or more Fabrication Pipework parts in the model.
@@ -102,6 +104,34 @@ This behaviour is why the [one-time project setup](#one-time-project-setup--requ
 ### Supports
 
 - **Include pipe supports** — write hanger / support components as PCF `SUPPORT` entries. On by default.
+
+### Connections (Flow Direction)
+
+Optional. Lets you tell downstream ISOGEN / Plant 3D what sits **upstream** and **downstream** of the exported spool — so the iso shows correct flow direction and terminates at real system endpoints instead of orphaned pipe ends.
+
+- **Connected From** — click **Select**, then pick one element in the Revit view that represents the upstream side (typically a pump, tank, or manifold, or another pipe run that continues out of frame). The selected element's identifier appears next to the button; click the small **×** to clear.
+- **Connected To** — same, for the downstream side.
+
+The picker accepts two element types and behaves differently for each:
+
+| Selected element type | Emitted as | Reference value comes from |
+|---|---|---|
+| **Mechanical Equipment** | `END-CONNECTION-EQUIPMENT` | The element's **Tag** parameter (Identity Data group), falling back to **Mark** if Tag is empty. If both are empty, a tag-validation dialog opens so you can assign one inline — the value gets written back to the equipment. |
+| **MEP Fabrication Pipework** | `END-CONNECTION-PIPELINE` | The element's **Line Number** parameter. If Line Number is empty, you get a "Missing Line Number" prompt — you can either proceed with a blank reference or cancel and populate the parameter first. |
+
+Leaving both fields blank is fine — the PCF just won't emit `END-CONNECTION` markers, and the downstream tool will draw the spool with open ends.
+
+**Why bother?** The isometric renderer uses these markers to place equipment glyphs and line-number tags at the correct end of the spool. Without them, a spool that continues from one iso sheet to the next has to be manually cross-referenced. Populating Connected From / Connected To lets the downstream tool do that automatically.
+
+### Compatibility
+
+Controls PCF text-formatting details that specific downstream tools care about.
+
+- **Use standardized descriptions (Plant 3D compatible)** — reformats each component's `ITEM-DESCRIPTION` line to follow the naming convention that Autodesk Plant 3D's PCF-to-Pipe importer expects. When on, descriptions read as `ELBOW 90 4"` / `TEE 4"x4"x2" REDUCING` / `VALVE GATE 6" 150#` — a canonical structure the Plant 3D catalog matcher recognises. When off, descriptions are the raw strings the fabrication catalog reports, which can be more descriptive but confuse Plant 3D.
+
+Turn this on when your downstream consumer is Plant 3D. Leave it off when the consumer is a text-based ISOGEN template or another tool that reads the description as-is.
+
+The **Learn More** link next to the checkbox opens the [Plant 3D PCF-to-Pipe compatibility notes](https://github.com/sbuchanan01/pcf-export-for-revit/blob/main/docs/user-guide.md#compatibility) — a summary of which catalog quirks the standardized-descriptions mode papers over.
 
 ### Output preview
 
