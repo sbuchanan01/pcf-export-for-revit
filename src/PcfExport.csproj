@@ -13,7 +13,7 @@
     <Platforms>x64</Platforms>
 
     <!-- Versioning surface — bump on release. -->
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Scott Buchanan</Authors>
     <Product>PCF Export for Revit</Product>
   </PropertyGroup>
