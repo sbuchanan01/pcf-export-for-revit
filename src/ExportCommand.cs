@@ -43,7 +43,12 @@ namespace PcfExport
             dialog.Closed += (_, _) =>
             {
                 _instance = null;
-                visScope.Dispose();
+                // Route disposal through the ExternalEvent so the Transaction
+                // that clears the view overrides runs on Revit's API thread.
+                // A direct Dispose() from the WPF Closed event silently fails
+                // because Transactions require an API context.
+                PcfExportApp.ExportHandler!.SetAction(_ => visScope.Dispose());
+                PcfExportApp.ExportEvent!.Raise();
             };
             dialog.Show(); // Modeless — returns immediately; export runs via ExternalEvent
 
