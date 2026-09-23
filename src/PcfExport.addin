@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>PCF Export for Revit</Name>
+    <Assembly>PcfExport.dll</Assembly>
+    <ClientId>AF75BAE8-E974-417C-A07C-1FE03C15E3D1</ClientId>
+    <FullClassName>PcfExport.PcfExportApp</FullClassName>
+    <VendorId>PCFEX</VendorId>
+    <VendorDescription>PCF Export for Revit</VendorDescription>
+  </AddIn>
+</RevitAddIns>

@@ -1,0 +1,192 @@
+<Window x:Class="PcfExport.UI.TagValidationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Valve Tag Validation"
+        Width="440" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        Background="#F5F5F5">
+
+    <Window.Resources>
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Padding" Value="14,5"/>
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2D6B9E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="22,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Padding" Value="22,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <StackPanel Margin="20">
+
+        <!-- Header -->
+        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="#C0392B" TextWrapping="Wrap"
+                   Text="{Binding HeaderText}"/>
+        <TextBlock Margin="0,4,0,0" Foreground="#555555" FontSize="11"
+                   Text="{Binding SubHeaderText}"/>
+
+        <!-- Progress -->
+        <Border Margin="0,14,0,0" Background="#E8EEF4" CornerRadius="4" Padding="10,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock FontWeight="SemiBold" FontSize="12"
+                               Text="{Binding CurrentDescription}"/>
+                    <TextBlock Foreground="#777777" FontSize="10" Margin="0,2,0,0"
+                               Text="{Binding CurrentUniqueId}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                           Foreground="#2D6B9E" FontWeight="SemiBold" FontSize="12"
+                           Text="{Binding ProgressText}"/>
+            </Grid>
+        </Border>
+
+        <!-- Tag input -->
+        <Grid Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                       FontWeight="SemiBold" Text="Tag:"/>
+            <TextBox Grid.Column="1" x:Name="TagBox"
+                     Text="{Binding CurrentTag, UpdateSourceTrigger=PropertyChanged}"
+                     CharacterCasing="Upper"
+                     Padding="4,3" KeyDown="TagBox_KeyDown">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Setter Property="BorderBrush" Value="#BBBBBB"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentHasError}" Value="True">
+                                <Setter Property="BorderBrush" Value="#C0392B"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+            <!-- Auto-suggest the next open tag using the same prefix and
+                 digit-width as the most recently entered tag on this run. -->
+            <Button Grid.Column="2" Content="Next"
+                    Style="{StaticResource NavButton}"
+                    Margin="6,0,0,0"
+                    Click="NextNumber_Click"
+                    IsEnabled="{Binding CanSuggestNext}"
+                    ToolTip="Fill this Tag with the next open number, using the same prefix and digit-width as the previous tag."/>
+        </Grid>
+
+        <!-- Validation error -->
+        <TextBlock Margin="60,3,0,0" FontSize="11" Foreground="#C0392B"
+                   TextWrapping="Wrap"
+                   Text="{Binding CurrentErrorText}"
+                   Visibility="{Binding CurrentHasError, Converter={StaticResource BoolToVis}}"/>
+
+        <!-- Navigation -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="← Previous" Style="{StaticResource NavButton}"
+                    Click="Prev_Click" IsEnabled="{Binding CanGoPrev}" Margin="0,0,6,0"/>
+            <Button Content="Next →" Style="{StaticResource NavButton}"
+                    Click="Next_Click" IsEnabled="{Binding CanGoNext}"/>
+        </StackPanel>
+
+        <!-- Used Tags collapsible section -->
+        <Border Margin="0,14,0,0" BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+
+                <!-- Toggle header -->
+                <Button Click="ToggleUsedTags_Click" Background="Transparent"
+                        BorderThickness="0" Cursor="Hand" Padding="8,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="#555555"
+                                   Text="{Binding UsedTagsHeaderText}"/>
+                        <TextBlock Grid.Column="1" FontSize="11" Foreground="#555555"
+                                   Text="{Binding UsedTagsChevron}"
+                                   FontFamily="Segoe UI Symbol"/>
+                    </Grid>
+                </Button>
+
+                <!-- Tag table — hidden by default -->
+                <Border Visibility="{Binding IsUsedTagsExpanded, Converter={StaticResource BoolToVis}}"
+                        BorderBrush="#DDDDDD" BorderThickness="0,1,0,0">
+                    <ListView ItemsSource="{Binding ExistingTagsSorted}"
+                              MaxHeight="160" FontSize="11"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              BorderThickness="0">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Used Tag Values" Width="380"
+                                                DisplayMemberBinding="{Binding}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Border>
+
+            </StackPanel>
+        </Border>
+
+        <!-- Divider -->
+        <Border BorderBrush="#DDDDDD" BorderThickness="0,1,0,0" Margin="0,14,0,0"/>
+
+        <!-- Footer buttons -->
+        <Grid Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="11"
+                       Foreground="#888888"
+                       Visibility="{Binding ShowFooterStatus, Converter={StaticResource BoolToVis}}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CanExport}" Value="True">
+                                <Setter Property="Text" Value="All tags entered — ready to export."/>
+                                <Setter Property="Foreground" Value="#27AE60"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CanExport}" Value="False">
+                                <Setter Property="Text" Value="Fill in all tags to enable export."/>
+                                <Setter Property="Foreground" Value="#888888"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <Button Grid.Column="1" x:Name="ExportButton" Content="Export" Style="{StaticResource PrimaryButton}"
+                    IsEnabled="{Binding CanExport}" Click="Export_Click"/>
+            <Button Grid.Column="3" Content="Cancel" Style="{StaticResource SecondaryButton}"
+                    Click="Cancel_Click" IsCancel="True"/>
+        </Grid>
+
+    </StackPanel>
+</Window>
