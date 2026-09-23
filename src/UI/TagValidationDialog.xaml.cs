@@ -60,6 +60,19 @@ namespace PcfExport.UI
             TagBox.SelectAll();
         }
 
+        // Zoom the active view to the current valve. Selection is already
+        // set by HighlightCurrent; ShowElements is what actually pans/zooms.
+        private void Show_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _uiDoc.ShowElements(ViewModel.CurrentItem.ElementId);
+                HighlightCurrent();
+            }
+            catch { /* element may not be visible in any open view */ }
+            TagBox.Focus();
+        }
+
         // "Next" button next to the Tag input — auto-fills the next open tag
         // value using the same prefix + digit width as the most recently
         // entered tag on this run.

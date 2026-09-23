@@ -16,14 +16,19 @@ namespace PcfExport.UI
     {
         private readonly UIDocument? _uiDoc;
         private readonly string      _originalLineNumber;
+        private readonly PcfExport.Revit.ExportVisibilityScope? _visScope;
 
         public ExportViewModel ViewModel { get; }
 
-        public ExportDialog(UIDocument uiDoc, IReadOnlyList<LineNumberToken> lineNumberTokens)
+        public ExportDialog(
+            UIDocument uiDoc,
+            IReadOnlyList<LineNumberToken> lineNumberTokens,
+            PcfExport.Revit.ExportVisibilityScope? visScope = null)
         {
             InitializeComponent();
             _uiDoc              = uiDoc;
             _originalLineNumber = string.Join(", ", lineNumberTokens.Select(t => t.Display));
+            _visScope           = visScope;
             ViewModel           = new ExportViewModel(lineNumberTokens);
             DataContext         = ViewModel;
         }
@@ -76,6 +81,9 @@ namespace PcfExport.UI
                 var doc       = uiDoc.Document;
                 var newTokens = ExportCommand.ReadLineNumberTokens(doc, uiDoc);
 
+                // Reconcile the visibility dim with the freshly-read selection.
+                _visScope?.UpdateSelection(uiDoc.Selection.GetElementIds());
+
                 Dispatcher.Invoke(() =>
                 {
                     ViewModel.SetTokens(newTokens);
@@ -113,6 +121,9 @@ namespace PcfExport.UI
 
                     var selectedIds = refs.Select(r => r.ElementId).ToList();
                     uiDoc.Selection.SetElementIds(selectedIds);
+
+                    // Reconcile the visibility dim with the newly-picked selection.
+                    _visScope?.UpdateSelection(selectedIds);
 
                     var newTokens = ExportCommand.ReadLineNumberTokens(doc, uiDoc);
 
@@ -170,6 +181,10 @@ namespace PcfExport.UI
                     if (element == null) { Dispatcher.Invoke(() => Show()); return; }
 
                     var connection = BuildConnection(element, uiDoc);
+
+                    // Connected From/To targets are part of the export
+                    // context — un-dim them.
+                    _visScope?.AddOne(reference.ElementId);
 
                     Dispatcher.Invoke(() =>
                     {

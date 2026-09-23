@@ -31,10 +31,20 @@ namespace PcfExport
             var    tokens          = ReadLineNumberTokens(doc, uiDoc);
             string detectedDisplay = string.Join(", ", tokens.Select(t => t.Display));
 
-            var dialog = new ExportDialog(uiDoc, tokens);
+            // Dim non-exported relevant-category elements in the active
+            // view so the user can see visually what's queued for export.
+            // Scope's lifetime tied to the dialog — disposed on Closed.
+            var visScope = new PcfExport.Revit.ExportVisibilityScope(
+                doc, doc.ActiveView, uiDoc.Selection.GetElementIds());
+
+            var dialog = new ExportDialog(uiDoc, tokens, visScope);
             dialog.ViewModel.PipelineReference = detectedDisplay;
             _instance = dialog;
-            dialog.Closed += (_, _) => _instance = null;
+            dialog.Closed += (_, _) =>
+            {
+                _instance = null;
+                visScope.Dispose();
+            };
             dialog.Show(); // Modeless — returns immediately; export runs via ExternalEvent
 
             return Result.Succeeded;

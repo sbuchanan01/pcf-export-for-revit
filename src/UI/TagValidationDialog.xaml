@@ -105,6 +105,9 @@
 
         <!-- Navigation -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Show" Style="{StaticResource NavButton}"
+                    Click="Show_Click" Margin="0,0,6,0"
+                    ToolTip="Zoom the active view to the current valve so you can see which one needs a tag."/>
             <Button Content="← Previous" Style="{StaticResource NavButton}"
                     Click="Prev_Click" IsEnabled="{Binding CanGoPrev}" Margin="0,0,6,0"/>
             <Button Content="Next →" Style="{StaticResource NavButton}"
