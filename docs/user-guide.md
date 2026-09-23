@@ -139,6 +139,8 @@ At the bottom, the dialog shows a live count of what will be exported: pipes, el
 
 ## Tag validation
 
+![Tag Validation dialog](screenshots/tag-validation-dialog.png)
+
 When you click **Export**, the tool scans every valve in the selection and checks:
 
 - Every valve has a `Tag` value.
@@ -160,6 +162,8 @@ Once every valve validates, the PCF file gets written and a summary dialog tells
 # Assign Tag
 
 Companion command for **prep** work — tagging fabrication valves interactively so they'll survive the exporter's tag-uniqueness check.
+
+![Assign Tag dialog](screenshots/assign-tag-dialog.png)
 
 The dialog is **modeless**, so you can pan, zoom, and select valves in the Revit view while it's open.
 
