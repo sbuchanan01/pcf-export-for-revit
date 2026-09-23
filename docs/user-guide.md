@@ -55,10 +55,26 @@ The exporter. Walks selected fabrication parts, derives ISOGEN SKEYs, and writes
 
 1. Select one or more Fabrication Pipework parts in the model.
 2. On the **PCF Export** tab, click **ITMs to PCF**.
-3. The **Export Options** dialog opens.
+3. The **Export Options** dialog opens. As soon as it opens, every element in the active view that is *not* part of the export selection gets a temporary **85% transparency** override (see [Visual export scope](#visual-export-scope) below).
 4. Review the options (defaults are usually correct), pick the output path, click **Export**.
 5. If any valves in the selection are missing tags, the tag-validation dialog opens — fill them in and click **Export** again.
 6. On success, a summary dialog tells you the file path and component counts.
+7. The transparency overrides restore automatically the moment the dialog closes, whether you finished the export, cancelled, or closed the window.
+
+## Visual export scope
+
+The moment the Export dialog opens, the tool applies a per-view graphic override to help you *see* what's queued for export vs. what isn't.
+
+- Every element in the active view of a **relevant piping / duct / equipment category** (fabrication pipework, fabrication ductwork, native pipes / ducts, pipe / duct fittings and accessories, mechanical equipment) that is **not** part of the current export selection gets rendered at **85% surface transparency**.
+- Elements *in* the export selection render at full opacity as usual.
+- The dim persists across the tag-validation flow — so when the Tag Validation dialog interrupts an export, you're still looking at the same visual scope.
+- Adding elements to the export set clears their transparency in real time:
+  - **Refresh Selection** re-reads the current Revit selection; newly-added elements un-dim, removed ones re-dim.
+  - **Pick Elements** replaces the export set entirely; the dim reconciles to match.
+  - **Connected From** / **Connected To** un-dims the picked target so it's fully visible alongside the rest of the export.
+- On any dialog close (Export success, Cancel, or window X), every override is cleared and the view returns to its normal appearance.
+
+If the active view can't accept element overrides (schedules, sheets), the tool silently skips the dim — nothing breaks, you just don't get the visual cue.
 
 ## Export Options dialog
 
@@ -150,6 +166,7 @@ If either check fails, the **Valve Tag Validation** dialog opens. It shows one m
 
 - **Tag** field — enter the new tag. Uppercase is enforced.
 - **Next** (beside the Tag field) — auto-fills the next open number using the pattern of the most recently entered tag (e.g. `V-001` → `V-002` → `V-003`, skipping numbers already used).
+- **Show** — zooms the active Revit view to the current valve and selects it. Useful when the valve isn't visible in the current view frame and you need to see what you're tagging before typing anything. Silently no-ops if the element isn't visible in any open view (e.g. it's hidden by a section box).
 - **← Previous / Next →** — walk between missing / duplicate items.
 - **Used Tag Values** (collapsible) — shows tags already in use, so you don't accidentally pick a duplicate you can't see.
 - **Export** — greyed out until every item has a unique tag. Click when ready to complete the export.
